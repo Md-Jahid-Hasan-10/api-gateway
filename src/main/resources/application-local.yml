@@ -1,0 +1,16 @@
+eureka:
+  client:
+    enabled: false
+
+spring:
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            user-service:
+              - uri: http://localhost:8083
+            account-service:
+              - uri: http://localhost:8081
+            fund-transfer-service:
+              - uri: http://localhost:8082

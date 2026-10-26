@@ -1,0 +1,61 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: user-service-auth
+              uri: lb://user-service
+              predicates:
+                - Path=/api/auth/**
+
+            - id: account-service
+              uri: lb://account-service
+              predicates:
+                - Path=/api/accounts/**
+
+            - id: fund-transfer-service
+              uri: lb://fund-transfer-service
+              predicates:
+                - Path=/api/transfers/**
+
+            # Internal routes are never forwarded. JwtAuthenticationFilter answers 404.
+            - id: blocked-internal
+              uri: no://op
+              predicates:
+                - Path=/internal/**
+
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "http://localhost:3000"
+                  - "http://127.0.0.1:3000"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders:
+                  - Authorization
+                  - Content-Type
+                  - Accept
+                maxAge: 3600
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    prefer-ip-address: true
+
+app:
+  jwt:
+    # MUST be identical to user-service. At least 32 characters.
+    secret: ${JWT_SECRET:banking-microservices-local-dev-secret-key-2026}
