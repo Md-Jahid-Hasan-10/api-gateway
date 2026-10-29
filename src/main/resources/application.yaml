@@ -1,9 +1,35 @@
 server:
   port: 8080
 
+app:
+  jwt:
+    # MUST be identical to user-service. At least 32 characters.
+    secret: ${JWT_SECRET:banking-microservices-local-dev-secret-key-2026}
+  rate-limit:
+    rules:
+      - path: /api/auth/register
+        limit: 10
+        window-seconds: 3600
+      - path: /api/auth/login
+        limit: 30
+        window-seconds: 300
+      - path: /api/auth/verify
+        limit: 20
+        window-seconds: 3600
 spring:
   application:
     name: api-gateway
+
+  config:
+    import: optional:file:.env[.properties]
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      timeout: 2s
+      connect-timeout: 2s
+
   cloud:
     gateway:
       server:
@@ -55,7 +81,3 @@ eureka:
   instance:
     prefer-ip-address: true
 
-app:
-  jwt:
-    # MUST be identical to user-service. At least 32 characters.
-    secret: ${JWT_SECRET:banking-microservices-local-dev-secret-key-2026}
