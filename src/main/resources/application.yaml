@@ -81,3 +81,14 @@ eureka:
   instance:
     prefer-ip-address: true
 
+management:
+  server:
+    port: 18080
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
