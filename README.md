@@ -738,3 +738,11 @@ curl -i -X OPTIONS -H 'Origin: http://localhost:3000' \
   `jjwt-api`/`jjwt-impl`/`jjwt-jackson` 0.12.6, `spring-boot-starter-data-redis-reactive`,
   `spring-boot-starter-actuator`, `micrometer-registry-prometheus`,
   `spring-boot-starter-test`. Spring Boot 3.5.5, Spring Cloud BOM 2025.0.0, Java 17.
+
+# api-gateway
+
+**Author:** [Jahid Hasan](https://github.com/Md-Jahid-Hasan-10)
+
+**Project:** Banking Microservices
+
+> The single front door of the banking platform: it routes public URL prefixes to Eureka services via `lb://`, validates the JWT bearer token and turns it into trusted identity headers, applies CORS for the web UI, and rate-limits the sensitive auth endpoints with Redis. Public port **8080**, actuator port **18080**.
