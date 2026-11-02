@@ -78,6 +78,11 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
+    # The registry was fetched once at startup and then only every 30 seconds.
+    # After a restart the gateway answered the first request of every route
+    # with 503 "No servers available for service: ...", because the load
+    # balancer cache was still empty. A shorter interval closes that window.
+    registry-fetch-interval-seconds: 5
   instance:
     prefer-ip-address: true
 
