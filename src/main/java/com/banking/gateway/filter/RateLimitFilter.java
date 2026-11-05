@@ -1,6 +1,7 @@
 package com.banking.gateway.filter;
 
 import com.banking.gateway.config.RateLimitProperties;
+import com.banking.gateway.exception.GatewayErrorWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;

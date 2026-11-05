@@ -1,5 +1,6 @@
 package com.banking.gateway.filter;
 
+import com.banking.gateway.exception.GatewayErrorWriter;
 import com.banking.gateway.security.AuthenticatedUser;
 import com.banking.gateway.security.JwtTokenValidator;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -71,6 +72,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         AuthenticatedUser authenticated = user.get();
+        exchange.getAttributes().put("banking.userId", authenticated.userId());
         ServerHttpRequest authenticatedRequest = builder.headers(headers -> {
             headers.set(HEADER_USER_ID, authenticated.userId());
             headers.set(HEADER_USER_EMAIL, authenticated.email());

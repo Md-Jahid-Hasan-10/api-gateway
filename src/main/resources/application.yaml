@@ -1,27 +1,35 @@
+
 server:
   port: 8080
 
 app:
   jwt:
-    # MUST be identical to user-service. At least 32 characters.
-    secret: ${JWT_SECRET:banking-microservices-local-dev-secret-key-2026}
-  rate-limit:
-    rules:
-      - path: /api/auth/register
-        limit: 10
-        window-seconds: 3600
-      - path: /api/auth/login
-        limit: 30
-        window-seconds: 300
-      - path: /api/auth/verify
-        limit: 20
-        window-seconds: 3600
+    # MUST be identical to user-service.
+    # At least 32 characters.
+    secret: ${JWT_SECRET:78f2b81005ac23edf307e4368594d68fb1038cc667bc12f5b99946b8ea9e5ccb}
+
+rate-limit:
+  rules:
+    - path: /api/auth/register
+      limit: 10
+      window-seconds: 3600
+    - path: /api/auth/login
+      limit: 30
+      window-seconds: 300
+    - path: /api/auth/verify
+      limit: 20
+      window-seconds: 3600
+
 spring:
   application:
     name: api-gateway
 
   config:
     import: optional:file:.env[.properties]
+
+  reactor:
+    context-propagation: auto
+
   data:
     redis:
       host: ${REDIS_HOST:127.0.0.1}
@@ -34,6 +42,10 @@ spring:
     gateway:
       server:
         webflux:
+          httpclient:
+            connect-timeout: 3000
+            response-timeout: 15s
+
           routes:
             - id: user-service-auth
               uri: lb://user-service
@@ -50,7 +62,8 @@ spring:
               predicates:
                 - Path=/api/transfers/**
 
-            # Internal routes are never forwarded. JwtAuthenticationFilter answers 404.
+            # Internal routes are never forwarded.
+            # JwtAuthenticationFilter answers 404.
             - id: blocked-internal
               uri: no://op
               predicates:
@@ -72,28 +85,57 @@ spring:
                   - Authorization
                   - Content-Type
                   - Accept
+                exposedHeaders:
+                  - X-Trace-Id
+                  - Retry-After
                 maxAge: 3600
 
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
-    # The registry was fetched once at startup and then only every 30 seconds.
-    # After a restart the gateway answered the first request of every route
-    # with 503 "No servers available for service: ...", because the load
-    # balancer cache was still empty. A shorter interval closes that window.
+    # Fetch registry more frequently after startup.
     registry-fetch-interval-seconds: 5
+
   instance:
     prefer-ip-address: true
 
 management:
   server:
     port: 18080
+
   endpoints:
     web:
       exposure:
         include: health,info,prometheus
+
   metrics:
     distribution:
       percentiles-histogram:
         http.server.requests: true
+        gateway.requests: true
+
+  tracing:
+    sampling:
+      probability: 1.0
+
+  otlp:
+    tracing:
+      endpoint: ${OTLP_TRACING_ENDPOINT:http://localhost:4318/v1/traces}
+
+logging:
+  structured:
+    format:
+      file: logstash
+    json:
+      add:
+        service: ${spring.application.name}
+
+  file:
+    name: ${BANKING_LOG_DIR:${user.home}/banking-logs}/${spring.application.name}.json
+
+  logback:
+    rollingpolicy:
+      max-file-size: 20MB
+      max-history: 3
+      total-size-cap: 200MB

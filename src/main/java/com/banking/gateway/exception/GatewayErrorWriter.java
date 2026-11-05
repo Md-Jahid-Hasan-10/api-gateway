@@ -1,4 +1,4 @@
-package com.banking.gateway.filter;
+package com.banking.gateway.exception;
 
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
@@ -15,13 +15,18 @@ import java.time.LocalDateTime;
 public class GatewayErrorWriter {
 
     public Mono<Void> write(ServerWebExchange exchange, HttpStatus status, String message) {
+        return write(exchange, status, status.name(), message);
+    }
+
+    /** Messages and codes are fixed texts of this class and its callers, never request data. */
+    public Mono<Void> write(ServerWebExchange exchange, HttpStatus status, String code, String message) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(status);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
         String body = String.format(
-                "{\"timestamp\":\"%s\",\"status\":%d,\"error\":\"%s\",\"message\":\"%s\"}",
-                LocalDateTime.now(), status.value(), status.getReasonPhrase(), message);
+                "{\"timestamp\":\"%s\",\"status\":%d,\"error\":\"%s\",\"code\":\"%s\",\"message\":\"%s\"}",
+                LocalDateTime.now(), status.value(), status.getReasonPhrase(), code, message);
 
         DataBuffer buffer = response.bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
         return response.writeWith(Mono.just(buffer));
